@@ -32,6 +32,6 @@ Please cite the work if you would like to use it.
 ```
 For any queries kindly contact:
 ```
-1. aankanmullick@gmail.com
-2. purkayasthasukannya020@gmail.com
+1. Ankan Mullick (aankanmullick@gmail.com)
+2. Sukannya Purkayastha (purkayasthasukannya020@gmail.com)
 ```
