@@ -1,8 +1,18 @@
 # MNID
-Code Repository for the paper 'A Framework to Generate High-quality Datapoints for Multiple Novel Intent Detection'
+Code Repository for the paper 'A Framework to Generate High-quality Datapoints for Multiple Novel Intent Detection' accepted at Findings of NAACL, 2022.
+
 # The method consists of two main parts:
 	1. Out of Domain Intent Detection (OODD)
 	2. MNID (Multiple Novel Intent Detection)
+
+# Requirements
+```
+1. pip install tensorflow
+2. pip install sentence-transformers
+3. pip install scipy
+4. pip install numpy
+```
+
 ## Citation
 
 Please cite the work if you would like to use it.
