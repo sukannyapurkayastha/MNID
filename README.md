@@ -6,6 +6,7 @@ Code Repository for the paper 'A Framework to Generate High-quality Datapoints f
 	2. MNID (Multiple Novel Intent Detection)
 
 ## Requirements
+Requires an environment supporting python 3.6 and also need the following:
 ```
 1. pip install tensorflow
 2. pip install sentence-transformers
