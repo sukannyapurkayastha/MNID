@@ -30,3 +30,8 @@ Please cite the work if you would like to use it.
   copyright = {Creative Commons Attribution 4.0 International}
 }
 ```
+For any queries kindly contact:
+```
+1. aankanmullick@gmail.com
+2. purkayasthasukannya020@gmail.com
+```
