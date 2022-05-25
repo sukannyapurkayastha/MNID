@@ -9,6 +9,7 @@ from sentence_transformers import SentenceTransformer,util
 from collections import Counter, defaultdict
 from scipy.spatial import distance
 import numpy as np
+import pickle
 
 
 # # Read Data
@@ -16,24 +17,24 @@ import numpy as np
 # In[ ]:
 
 
-f =open('data/train.label')
+f =open('data/train.label') # contains all training labels
 train_labels=f.readlines()
-f = open('data/valid.label')
+f = open('data/valid.label') # contains all validation labels
 valid_labels = f.readlines()
 
 
 # In[ ]:
 
 
-f = open('data/valid.seq.in')
+f = open('data/valid.seq.in') # contains all validation data
 valid_data=f.readlines()
 
 
 # In[ ]:
 
 
-f = open('OOD_Data/preds_banking77_banking77_data.csv')
-output_preds = f.readlines()
+f = open('OOD_Data/preds_banking77_banking77_data.csv') #contains predictions from OODD
+output_preds = f.readlines() #list of IND and OOD where IND is in-domain and OOD is out of domain
 
 
 # In[ ]:
@@ -52,14 +53,14 @@ for preds,gold,data in zip(output_preds,valid_labels,valid_data):
 # In[ ]:
 
 
-f = open('data/actual_gold_dev_data.txt')
+f = open('data/actual_gold_dev_data.txt') # contains gold IND and OOD predictions
 gold = f.readlines()
 
 
 # In[ ]:
 
 
-model = SentenceTransformer('all-MiniLM-L6-v2')
+model = SentenceTransformer('bert-base-nli-mean-tokens')
 sen_embeddings = model.encode(ood_data, convert_to_tensor=True)
 
 
@@ -73,189 +74,35 @@ all_labels=[]
 
 
 # In[ ]:
-
-
 from sklearn.cluster import KMeans
 num_clusters = 2
-# Define kmeans model
-random.seed(1)
-clustering_model = KMeans(n_clusters=num_clusters,random_state=0)
-# Fit the embedding with kmeans clustering.
-clustering_model.fit(sen_embeddings)
-cluster_assignment = clustering_model.labels_
-clustered_sentences = [[] for i in range(num_clusters)]
-for sentence_id, cluster_id in enumerate(cluster_assignment):
-    clustered_sentences[cluster_id].append(ood_data[sentence_id])
 random.seed(0)
-annotations=[]
-for i in range(len(clustered_sentences)):
-    annotations.extend(random.sample(clustered_sentences[i],2))
-all_annotations.extend(annotations)
-labels_for_annotation=[]
-for data in annotations:
-    idx= valid_data.index(data)
-    labels_for_annotation.append(valid_labels[idx])
-all_labels.extend(labels_for_annotation)
-new_classes = len(set(labels_for_annotation)-set(train_labels))
-print(f'No of new classes discovered:{new_classes}')
+while(1):
+    if new_classes > num_clusters:
+        # Define kmeans model
+        random.seed(1)
+        clustering_model = KMeans(n_clusters=num_clusters,random_state=0)
+        # Fit the embedding with kmeans clustering.
+        clustering_model.fit(sen_embeddings)
+        cluster_assignment = clustering_model.labels_
+        clustered_sentences = [[] for i in range(num_clusters)]
+        for sentence_id, cluster_id in enumerate(cluster_assignment):
+            clustered_sentences[cluster_id].append(ood_data[sentence_id])
 
-
-# In[ ]:
-
-
-from sklearn.cluster import KMeans
-num_clusters = 4
-random.seed(1)
-# Define kmeans model
-clustering_model = KMeans(n_clusters=num_clusters,random_state=0)
-# Fit the embedding with kmeans clustering.
-clustering_model.fit(sen_embeddings)
-cluster_assignment = clustering_model.labels_
-clustered_sentences = [[] for i in range(num_clusters)]
-for sentence_id, cluster_id in enumerate(cluster_assignment):
-    clustered_sentences[cluster_id].append(ood_data[sentence_id])
-random.seed(0)
-annotations=[]
-for i in range(len(clustered_sentences)):
-    common = set(all_annotations) & set(clustered_sentences[i])
-    annotations.extend(random.sample(clustered_sentences[i],2))
-all_annotations.extend(annotations)
-labels_for_annotation=[]
-for data in annotations:
-    idx= valid_data.index(data)
-    labels_for_annotation.append(valid_labels[idx])
-all_labels.extend(labels_for_annotation)
-new_classes = len(set(labels_for_annotation)-set(train_labels))
-print(f'No of new classes discovered:{new_classes}')
-
-
-# In[ ]:
-
-
-from sklearn.cluster import KMeans
-num_clusters = 8
-random.seed(1)
-# Define kmeans model
-clustering_model = KMeans(n_clusters=num_clusters,random_state=0)
-# Fit the embedding with kmeans clustering.
-clustering_model.fit(sen_embeddings)
-cluster_assignment = clustering_model.labels_
-clustered_sentences = [[] for i in range(num_clusters)]
-for sentence_id, cluster_id in enumerate(cluster_assignment):
-    clustered_sentences[cluster_id].append(ood_data[sentence_id])
-random.seed(0)
-annotations=[]
-for i in range(len(clustered_sentences)):
-    common = set(all_annotations) & set(clustered_sentences[i])
-    annotations.extend(random.sample(clustered_sentences[i],2))
-all_annotations.extend(annotations)
-labels_for_annotation=[]
-for data in annotations:
-    idx= valid_data.index(data)
-    labels_for_annotation.append(valid_labels[idx])
-all_labels.extend(labels_for_annotation)
-new_classes = len(set(labels_for_annotation)-set(train_labels))
-print(f'No of new classes discovered:{new_classes}')
-
-
-# In[ ]:
-
-
-cluster_no={}
-annotation_with_labels={}
-from sklearn.cluster import KMeans
-num_clusters = 16
-random.seed(1)
-# Define kmeans model
-clustering_model = KMeans(n_clusters=num_clusters,random_state=0)
-# Fit the embedding with kmeans clustering.
-clustering_model.fit(sen_embeddings)
-cluster_assignment = clustering_model.labels_
-clustered_sentences = [[] for i in range(num_clusters)]
-for sentence_id, cluster_id in enumerate(cluster_assignment):
-    clustered_sentences[cluster_id].append(ood_data[sentence_id])
-random.seed(0)
-annotations=[]
-for i in range(len(clustered_sentences)):
-    common = set(all_annotations) & set(clustered_sentences[i])
-    #if len(common) <2:
-    annotations.extend(random.sample(clustered_sentences[i],2))
-all_annotations.extend(annotations)
-labels_for_annotation=[]
-for data in annotations:
-    idx= valid_data.index(data)
-    labels_for_annotation.append(valid_labels[idx])
-    annotation_with_labels[data]=valid_labels[idx]
-all_labels.extend(labels_for_annotation)
-new_classes = len(set(labels_for_annotation)-set(train_labels))
-print(f'No of new classes discovered:{new_classes}')
-
-
-# In[ ]:
-
-
-cluster_no={}
-annotation_with_labels={}
-from sklearn.cluster import KMeans
-num_clusters = 32
-random.seed(1)
-# Define kmeans model
-clustering_model = KMeans(n_clusters=num_clusters,random_state=0)
-# Fit the embedding with kmeans clustering.
-clustering_model.fit(sen_embeddings)
-cluster_assignment = clustering_model.labels_
-clustered_sentences = [[] for i in range(num_clusters)]
-for sentence_id, cluster_id in enumerate(cluster_assignment):
-    clustered_sentences[cluster_id].append(ood_data[sentence_id])
-random.seed(0)
-annotations=[]
-for i in range(len(clustered_sentences)):
-    common = set(all_annotations) & set(clustered_sentences[i])
-    #if len(common) <2:
-    annotations.extend(random.sample(clustered_sentences[i],2))
-all_annotations.extend(annotations)
-labels_for_annotation=[]
-for data in annotations:
-    idx= valid_data.index(data)
-    labels_for_annotation.append(valid_labels[idx])
-    annotation_with_labels[data]=valid_labels[idx]
-all_labels.extend(labels_for_annotation)
-new_classes = len(set(labels_for_annotation)-set(train_labels))
-print(f'No of new classes discovered:{new_classes}')
-
-
-# In[ ]:
-
-
-cluster_no={}
-annotation_with_labels={}
-from sklearn.cluster import KMeans
-num_clusters = 64
-random.seed(1)
-# Define kmeans model
-clustering_model = KMeans(n_clusters=num_clusters,random_state=0)
-# Fit the embedding with kmeans clustering.
-clustering_model.fit(sen_embeddings)
-cluster_assignment = clustering_model.labels_
-clustered_sentences = [[] for i in range(num_clusters)]
-for sentence_id, cluster_id in enumerate(cluster_assignment):
-    clustered_sentences[cluster_id].append(ood_data[sentence_id])
-random.seed(0)
-annotations=[]
-for i in range(len(clustered_sentences)):
-    common = set(all_annotations) & set(clustered_sentences[i])
-    #if len(common) <2:
-    annotations.extend(random.sample(clustered_sentences[i],2))
-all_annotations.extend(annotations)
-labels_for_annotation=[]
-for data in annotations:
-    idx= valid_data.index(data)
-    labels_for_annotation.append(valid_labels[idx])
-    annotation_with_labels[data]=valid_labels[idx]
-all_labels.extend(labels_for_annotation)
-new_classes = len(set(labels_for_annotation)-set(train_labels))
-print(f'No of new classes discovered:{new_classes}')
-
+        annotations=[]
+        for i in range(len(clustered_sentences)):
+            annotations.extend(random.sample(clustered_sentences[i],2))
+        all_annotations.extend(annotations)
+        labels_for_annotation=[]
+        for data in annotations:
+            idx= valid_data.index(data)
+            labels_for_annotation.append(valid_labels[idx])
+        all_labels.extend(labels_for_annotation)
+        new_classes = len(set(labels_for_annotation)-set(train_labels))
+        print(f'No of new classes discovered:{new_classes}')
+        num_clusters*=2
+    else:
+        break
 
 # # CQBA
 
@@ -412,7 +259,6 @@ new_labels = new_silver_class+lbl_new_bad
 
 # In[ ]:
 
-
 f = open('data_generated/new_data.txt','w')
 for data in new_data:
     f.write(data)
@@ -448,70 +294,36 @@ for data in all_annotated_clusters:
     new_labelled_data.extend(text)
     new_labelled_class.extend(lbl)
 
+total_annotated = all_annotations+count+new_added
+budget = ((new_classes)*10)-total_annotated
 
 # # PPAS
 
 # In[ ]:
 
+with open("cluster_wise_pts_remaining.pkl", "wb") as pkl_handle:
+    pickle.dump(cluster_wise_pts_remaining, pkl_handle)
 
-import os
-random.seed(0)
-count=0
-total=0
-path = "output_confidences/preds/"
-for file in os.listdir(path):
-    if file.startswith('gold'):
-        f = open(os.path.join(path,file))
-        lines = f.readlines()
-        cluster_no=int(file.split('_')[3])
-        high_conf=[]
-        low_conf=[]
-        for i in range(len(lines)):
-            conf_score = float(lines[i])
-            if conf_score>0.5:
-                high_conf.append(cluster_wise_pts_remaining[cluster_no][i])
-            else:
-                low_conf.append(cluster_wise_pts_remaining[cluster_no][i])
-        if len(low_conf)<2:
-            sents=low_conf
-        elif len(low_conf)>=2 and len(low_conf)<3:
-            sents = random.sample(low_conf, 2)
-        elif len(low_conf)>=3 and len(low_conf)<4:
-            sents = random.sample(low_conf, 3)
-        else:
-            sents = random.sample(low_conf, 4)
-        total+=len(sents)
-        for sent in sents: #gold strategy
-            lbls = new_lab_list[ood_data.index(sent)]
-            all_annotated_clusters[cluster_no].append(sent)
-            all_annotated_labels[cluster_no].append(lbls)
-            new_labelled_data.append(sent)
-            new_labelled_class.append(lbls)
-        for pts in high_conf:
-            utt_emb = sen_embeddings[ood_data.index(pts)]
-            text = all_annotated_clusters[cluster_no]
-            cos_sim=-10
-            cos_scores=[]
-            for t in text:
-                item_emb = sen_embeddings[ood_data.index(t)]
-                cosine_scores = util.pytorch_cos_sim(utt_emb, item_emb)
-                cos_scores.append(cosine_scores)
-            max_value = max(cos_scores)
-            if max_value>0.8:
-                idx = cos_scores.index(max_value)
-                new_labelled_data.append(pts)
-                new_labelled_class.append(all_annotated_labels[cluster_no][idx])
+with open("new_lab_list.pkl", "wb") as pkl_handle:
+    pickle.dump(new_lab_list, pkl_handle)
 
+with open("ood_data.pkl", "wb") as pkl_handle:
+    pickle.dump(ood_data, pkl_handle)
 
-# In[ ]:
+with open("all_annotated_clusters.pkl", "wb") as pkl_handle:
+    pickle.dump(all_annotated_clusters, pkl_handle)
 
+with open("all_annotated_labels.pkl", "wb") as pkl_handle:
+    pickle.dump(all_annotated_labels, pkl_handle)
 
-f = open('outputs_PPAS/new_data.txt','w')
-for data in new_labelled_data:
-    f.write(data)
-f.close()
-f = open('outputs_PPAS/new_class.txt','w')
-for data in new_labelled_class:
-    f.write(data)
-f.close()
+with open("new_labelled_data.pkl", "wb") as pkl_handle:
+    pickle.dump(new_labelled_data, pkl_handle)
 
+with open("new_labelled_class.pkl", "wb") as pkl_handle:
+    pickle.dump(new_labelled_class, pkl_handle)
+
+with open("sen_embeddings.pkl", "wb") as pkl_handle:
+    pickle.dump(sen_embeddings, pkl_handle)
+
+with open("budget.pkl", "wb") as pkl_handle:
+    pickle.dump(budget, pkl_handle)
